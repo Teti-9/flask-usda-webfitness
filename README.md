@@ -8,6 +8,6 @@
 
 ## Ferramentas
 * Back-end
-   - Python - Flassk
+   - Python - Flask
 * Front-end
    - HTML - CSS - JS
