@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Food Information</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.css" />
+    <style>
+        @font-face {
+            font-family: BebasNeue;
+            src: url('BebasNeue.ttf');
+        }
+
+        body {
+            font-family: BebasNeue;
+            background-color: white;
+        }
+
+        .hero-title {
+            text-align: center;
+            font-size: 45px;
+            font-style: bold;
+        }
+
+        .hero-p {
+            text-align: center;
+            font-style: bold;
+            font-size: 25px;
+            margin-top: -25px;
+            margin-bottom: -25px;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 98%;
+            padding: 12px 24px;
+
+            background-color: transparent;
+            font-size: 14px;
+            line-height: 18px;
+
+            color: #575756;
+            background-color: transparent;
+            border-radius: 50px;
+            border: 1px solid #575756;
+
+            &::placeholder {
+                color: color(#575756 a(0.8));
+                text-transform: uppercase;
+                letter-spacing: 1.5px;
+            }
+        }
+
+        .search-button {
+            width: 100%;
+            padding: 12px 24px;
+
+            background-color: transparent;
+            font-size: 14px;
+            line-height: 18px;
+
+            color: #575756;
+            background-color: transparent;
+            border-radius: 50px;
+            border: 1px solid #575756;
+            color: color(#575756 a(0.8));
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .box {
+            transition: all 0.3s ease;
+            border-radius: 3px;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .box-expanded {
+            height: auto;
+            overflow: visible;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .box-hidden {
+            display: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <section class="hero is-info">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title hero-title">
+                    Informações Nutricionais
+                </h1>
+                <p class="p hero-p">
+                    Procure o alimento desejado
+                </p>
+            </div>
+        </div>
+    </section>
+    <section class="section">
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column is-half">
+                    <div class="search-container">
+                        <form method="POST" action="/">
+                            <div class="field has-addons">
+                                <div class="control is-expanded">
+                                    <input class="input search-input" name="query" type="text" placeholder="Alimento"
+                                        data-food="{{ food | tojson }}">
+                                </div>
+                                <div class="control">
+                                    <button id="searchButton" class="button is-info search-button">
+                                        Procurar
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    {% if foods_list %}
+                    <div class="columns is-multiline">
+                        {% for food in foods_list %}
+                        <div class="column is-one-third">
+                            <div class="box" onclick="toggleBox(this)">
+                                <article class="media">
+                                    <div class="media-content">
+                                        <div class="content">
+                                            <p>
+                                                <strong>Porção (g): <input type="text" class="portion-input" value="100"
+                                                        data-food='{{ food | tojson }}'></strong><br>
+                                                <br>
+                                                <strong>{{ food.name }}</strong><br>
+                                                <br>
+                                                <strong>Carboidrato:</strong> <span class=" carbs">{{ food.carbs
+                                                    }}</span><br>
+                                                <strong>Proteína:</strong> <span class="protein">{{ food.protein
+                                                    }}</span><br>
+                                                <strong>Gordura:</strong> <span class="fat">{{ food.fat
+                                                    }}</span><br>
+                                                <strong>Fibra:</strong> <span class="fibers">{{ food.fibers
+                                                    }}</span><br>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </article>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function updateNutritionalValues(input, food) {
+            var portion = parseFloat(input.value);
+            var parentBox = input.closest('.box');
+            var carbs = parentBox.querySelector('.carbs');
+            var protein = parentBox.querySelector('.protein');
+            var fat = parentBox.querySelector('.fat');
+            var fibers = parentBox.querySelector('.fibers');
+
+            carbs.textContent = (parseFloat(food.carbs) * (portion / 100)).toFixed(2);
+            protein.textContent = (parseFloat(food.protein) * (portion / 100)).toFixed(2);
+            fat.textContent = (parseFloat(food.fat) * (portion / 100)).toFixed(2);
+            fibers.textContent = (parseFloat(food.fibers) * (portion / 100)).toFixed(2);
+        }
+
+        document.querySelectorAll('.portion-input').forEach(function (input) {
+            input.addEventListener('click', function (event) {
+                event.stopPropagation();
+                var parentBox = this.closest('.box');
+                toggleBox(parentBox);
+            });
+
+            input.addEventListener('input', function () {
+                var food = JSON.parse(this.dataset.food);
+                updateNutritionalValues(this, food);
+            });
+        });
+
+        function toggleBox(box) {
+            var isExpanded = box.classList.contains('box-expanded');
+            var portionInput = box.querySelector('.portion-input');
+
+            var clickedOnPortionInput = event.target.classList.contains('portion-input');
+            var clickedOnFoodName = event.target.tagName === 'STRONG';
+
+            if (isExpanded && clickedOnPortionInput || clickedOnFoodName) {
+                return;
+            }
+
+            box.classList.toggle('box-expanded');
+
+            var allBoxes = document.querySelectorAll('.box');
+            allBoxes.forEach(function (otherBox) {
+                if (otherBox !== box) {
+                    otherBox.classList.toggle('box-hidden');
+                }
+            });
+        }
+        document.querySelector('form').addEventListener('submit', function (event) {
+            var searchButton = document.getElementById('searchButton');
+            searchButton.disabled = true;
+            searchButton.textContent = 'Procurando...';
+        });
+
+    </script>
+</body>
+
+</html>
